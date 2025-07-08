@@ -29,6 +29,28 @@ CREATE INDEX IF NOT EXISTS idx_documents_content_fts ON documents USING gin(to_t
 -- 2. Create a new bucket named "documents"
 -- 3. Set it to public if you want direct file access, or keep private for controlled access
 
--- Create RLS policies (optional, since no auth required)
+-- Create RLS policies for documents table (optional, since no auth required)
 -- ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 -- CREATE POLICY "Allow all operations" ON documents FOR ALL USING (true);
+
+-- Create RLS policies for storage bucket
+-- Since we don't have authentication, we need to allow all operations on the storage bucket
+-- Run these commands in your Supabase SQL editor:
+
+-- Allow all operations on the documents storage bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('documents', 'documents', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Create storage policies to allow all operations (since no auth required)
+CREATE POLICY "Allow all uploads" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'documents');
+
+CREATE POLICY "Allow all downloads" ON storage.objects
+FOR SELECT USING (bucket_id = 'documents');
+
+CREATE POLICY "Allow all updates" ON storage.objects
+FOR UPDATE USING (bucket_id = 'documents');
+
+CREATE POLICY "Allow all deletes" ON storage.objects
+FOR DELETE USING (bucket_id = 'documents');

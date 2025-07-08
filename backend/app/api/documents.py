@@ -48,10 +48,17 @@ async def upload_documents(files: List[UploadFile] = File(...)):
                 "updated_at": datetime.utcnow().isoformat()
             }
             
+            print(f"Inserting document data: {doc_data}")
             result = supabase.table("documents").insert(doc_data).execute()
+            print(f"Database insert result: {result}")
             
-            if result.error:
+            if hasattr(result, 'error') and result.error:
+                print(f"Database insert error: {result.error}")
                 raise HTTPException(status_code=500, detail=f"Database error: {result.error}")
+            
+            if not result.data:
+                print(f"No data returned from database insert")
+                raise HTTPException(status_code=500, detail="No data returned from database insert")
             
             doc_record = result.data[0]
             uploaded_docs.append(DocumentResponse(
@@ -108,29 +115,48 @@ async def get_documents_by_category():
     supabase = db.get_client()
     
     try:
+        print("Fetching documents by category...")
         result = supabase.table("documents").select("id, filename, file_type, file_size, upload_date, metadata").order("upload_date", desc=True).execute()
         
-        if result.error:
+        print(f"Database query result: {result}")
+        
+        if hasattr(result, 'error') and result.error:
+            print(f"Database error: {result.error}")
             raise HTTPException(status_code=500, detail=f"Database error: {result.error}")
         
-        # Organize by category
+        # Initialize empty categories
         categories = {"txt": [], "img": [], "pdf": []}
         
+        # Handle empty result
+        if not hasattr(result, 'data') or not result.data:
+            print("No documents found in database")
+            return categories
+        
+        print(f"Found {len(result.data)} documents")
+        
         for doc in result.data:
-            doc_response = DocumentResponse(
-                id=doc["id"],
-                filename=doc["filename"],
-                file_type=DocumentType(doc["file_type"]),
-                file_size=doc["file_size"],
-                upload_date=datetime.fromisoformat(doc["upload_date"].replace('Z', '+00:00')),
-                metadata=doc["metadata"]
-            )
-            categories[doc["file_type"]].append(doc_response)
+            try:
+                doc_response = DocumentResponse(
+                    id=doc["id"],
+                    filename=doc["filename"],
+                    file_type=DocumentType(doc["file_type"]),
+                    file_size=doc["file_size"],
+                    upload_date=datetime.fromisoformat(doc["upload_date"].replace('Z', '+00:00')),
+                    metadata=doc["metadata"]
+                )
+                categories[doc["file_type"]].append(doc_response)
+            except Exception as doc_error:
+                print(f"Error processing document {doc.get('id', 'unknown')}: {doc_error}")
+                continue
         
         return categories
         
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch documents: {str(e)}")
+        print(f"Unexpected error in get_documents_by_category: {str(e)}")
+        # Return empty categories instead of failing
+        return {"txt": [], "img": [], "pdf": []}
 
 
 @router.get("/{document_id}", response_model=DocumentResponse)
@@ -181,15 +207,21 @@ async def get_document_preview(document_id: str):
         raise HTTPException(status_code=400, detail="Invalid document ID format")
     
     try:
+        print(f"Fetching document preview for ID: {document_id}")
         result = supabase.table("documents").select("*").eq("id", document_id).execute()
         
-        if result.error:
+        print(f"Preview query result: {result}")
+        
+        if hasattr(result, 'error') and result.error:
+            print(f"Database error: {result.error}")
             raise HTTPException(status_code=500, detail=f"Database error: {result.error}")
         
         if not result.data:
+            print("Document not found")
             raise HTTPException(status_code=404, detail="Document not found")
         
         doc = result.data[0]
+        print(f"Document data: {doc}")
         file_type = DocumentType(doc["file_type"])
         
         preview = DocumentPreview(
@@ -201,13 +233,16 @@ async def get_document_preview(document_id: str):
         
         # For images, provide the file URL
         if file_type == DocumentType.IMG:
+            print(f"Getting file URL for path: {doc['file_path']}")
             preview.file_url = storage_service.get_file_url(doc["file_path"])
         
+        print(f"Preview response: {preview}")
         return preview
         
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Unexpected error in preview: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch document preview: {str(e)}")
 
 

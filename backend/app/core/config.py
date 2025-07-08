@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     # Supabase
     SUPABASE_URL: str
     SUPABASE_KEY: str
+    SUPABASE_SERVICE_KEY: Optional[str] = None  # Service role key for admin operations
     
     # DeepSeek API
     DEEPSEEK_API_KEY: str

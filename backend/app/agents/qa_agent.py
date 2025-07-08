@@ -47,13 +47,17 @@ class QAAgent:
             # Use PostgreSQL full-text search
             # This is a simple approach - in production, you might want to use vector embeddings
             search_query = self._prepare_search_query(question)
+            print(f"Searching for: {question}")
+            print(f"Search query: {search_query}")
             
             # Search in document content and filename
             result = self.supabase.table("documents").select("*").or_(
                 f"content.fts.{search_query},filename.ilike.%{question}%"
             ).limit(5).execute()
             
-            if result.error:
+            print(f"Search result: {result}")
+            
+            if hasattr(result, 'error') and result.error:
                 print(f"Search error: {result.error}")
                 # Fallback to simple text search
                 return await self._fallback_search(question)
@@ -64,6 +68,7 @@ class QAAgent:
                 if doc["content"] and doc["content"].strip():
                     relevant_docs.append(doc)
             
+            print(f"Found {len(relevant_docs)} relevant documents")
             return relevant_docs
             
         except Exception as e:
@@ -74,10 +79,14 @@ class QAAgent:
     async def _fallback_search(self, question: str) -> List[Dict[str, Any]]:
         """Fallback search method using simple text matching"""
         try:
+            print(f"Using fallback search for: {question}")
             # Get all documents with content
             result = self.supabase.table("documents").select("*").not_.is_("content", "null").execute()
             
-            if result.error:
+            print(f"Fallback query result: {result}")
+            
+            if hasattr(result, 'error') and result.error:
+                print(f"Fallback query error: {result.error}")
                 return []
             
             # Simple keyword matching
@@ -103,6 +112,7 @@ class QAAgent:
             
             # Sort by relevance score and return top 5
             relevant_docs.sort(key=lambda x: x["_score"], reverse=True)
+            print(f"Fallback found {len(relevant_docs)} relevant documents")
             return relevant_docs[:5]
             
         except Exception as e:
