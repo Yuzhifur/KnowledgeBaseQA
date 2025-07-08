@@ -62,7 +62,7 @@ class QAAgent:
                 # Fallback to simple text search
                 return await self._fallback_search(question)
             
-            # Filter out documents without content (like images)
+            # Filter out documents without content, but keep images with OCR text
             relevant_docs = []
             for doc in result.data:
                 if doc["content"] and doc["content"].strip():

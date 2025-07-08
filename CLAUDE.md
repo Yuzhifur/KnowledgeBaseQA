@@ -72,12 +72,33 @@ npm run lint
 ### Backend (.env)
 Required environment variables:
 - `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_KEY`: Your Supabase anon key
+- `SUPABASE_KEY`: Your Supabase anon key  
 - `SUPABASE_SERVICE_KEY`: (Optional) Service role key for admin operations
 - `DEEPSEEK_API_KEY`: DeepSeek API key for AI services
+- `DEEPSEEK_BASE_URL`: DeepSeek API base URL (default: "https://api.deepseek.com/v1")
+- `APP_NAME`: Application name (default: "Knowledge Base QA")
+- `DEBUG`: Debug mode flag (default: false)
+- `MAX_FILE_SIZE`: Maximum file size in bytes (default: 10MB)
+- `ALLOWED_EXTENSIONS`: List of allowed file extensions (default: [".txt", ".pdf", ".jpg", ".jpeg", ".png"])
 
 ### Frontend (.env.local)
-- `NEXT_PUBLIC_API_URL`: Backend API URL (http://localhost:8000 for development)
+Required environment variables:
+- `NEXT_PUBLIC_API_URL`: Backend API URL
+  - Development: `http://localhost:8000`
+  - Production: `https://knowledgebaseqa-production.up.railway.app`
+
+### Deployment Environment Variables
+
+#### Vercel (Frontend)
+Set in Vercel Dashboard → Project Settings → Environment Variables:
+- `NEXT_PUBLIC_API_URL`: `https://knowledgebaseqa-production.up.railway.app`
+
+#### Railway (Backend)
+Set in Railway Dashboard → Project → Variables:
+- `SUPABASE_URL`: Your Supabase project URL
+- `SUPABASE_KEY`: Your Supabase anon key
+- `SUPABASE_SERVICE_KEY`: Your Supabase service role key
+- `DEEPSEEK_API_KEY`: Your DeepSeek API key
 
 ## Database Schema
 

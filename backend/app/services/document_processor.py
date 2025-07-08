@@ -1,5 +1,7 @@
 import PyPDF2
 import io
+import pytesseract
+from PIL import Image
 from typing import Optional
 from ..models.document import DocumentType
 
@@ -16,8 +18,7 @@ class DocumentProcessor:
             elif file_type == DocumentType.PDF:
                 return self._extract_text_from_pdf(content)
             elif file_type == DocumentType.IMG:
-                # For now, return None for images (graceful handling)
-                return None
+                return self._extract_text_from_image(content)
             else:
                 return None
         except Exception as e:
@@ -49,6 +50,28 @@ class DocumentProcessor:
             return '\n'.join(text_content)
         except Exception as e:
             raise Exception(f"Failed to extract text from PDF: {str(e)}")
+    
+    def _extract_text_from_image(self, content: bytes) -> str:
+        """Extract text from image file using OCR"""
+        try:
+            # Load image from bytes
+            image = Image.open(io.BytesIO(content))
+            
+            # Convert to RGB if necessary (for PNG with transparency)
+            if image.mode in ('RGBA', 'LA', 'P'):
+                image = image.convert('RGB')
+            
+            # Use pytesseract to extract text
+            text = pytesseract.image_to_string(image)
+            
+            # Clean up the text (remove excessive whitespace)
+            text = '\n'.join(line.strip() for line in text.split('\n') if line.strip())
+            
+            return text if text else "No text found in image"
+        except Exception as e:
+            # If OCR fails, return a descriptive message about the image
+            print(f"OCR failed for image: {str(e)}")
+            return f"Image file - OCR processing failed: {str(e)}. Please install tesseract-ocr for text extraction from images."
     
     def get_document_metadata(self, content: bytes, file_type: DocumentType, filename: str) -> dict:
         """Extract metadata from document"""

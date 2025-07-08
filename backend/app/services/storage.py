@@ -141,9 +141,16 @@ class StorageService:
         """Download file content from storage"""
         try:
             result = self.supabase.storage.from_(self.bucket_name).download(file_path)
-            if result.error:
+            
+            # Handle different response formats
+            if hasattr(result, 'error') and result.error:
                 raise Exception(f"Download failed: {result.error}")
-            return result.data
+            elif hasattr(result, 'data'):
+                return result.data
+            elif isinstance(result, bytes):
+                return result
+            else:
+                raise Exception(f"Unexpected download result format: {type(result)}")
         except Exception as e:
             raise Exception(f"Failed to download file: {str(e)}")
 
