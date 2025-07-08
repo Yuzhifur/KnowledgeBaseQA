@@ -80,7 +80,7 @@ export default function QAInterface({ onDocumentSelect }: QAInterfaceProps) {
             <div className="text-center text-gray-500 py-8">
               <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p>Ask a question about your documents!</p>
-              <p className="text-sm mt-2">I'll search through your uploaded files to find relevant information.</p>
+              <p className="text-sm mt-2">I&apos;ll search through your uploaded files to find relevant information.</p>
             </div>
           ) : (
             messages.map((message) => (

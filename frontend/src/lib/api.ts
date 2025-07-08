@@ -16,7 +16,7 @@ export interface Document {
   file_type: 'txt' | 'img' | 'pdf';
   file_size: number;
   upload_date: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export interface DocumentPreview {

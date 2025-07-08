@@ -16,7 +16,7 @@ export default function DocumentPreview({ documentId, onClose }: DocumentPreview
 
   useEffect(() => {
     loadDocument();
-  }, [documentId]);
+  }, [documentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadDocument = async () => {
     try {

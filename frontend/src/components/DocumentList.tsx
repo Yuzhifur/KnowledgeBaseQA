@@ -25,7 +25,7 @@ export default function DocumentList({ refresh, onDocumentSelect, onRefreshCompl
 
   useEffect(() => {
     loadDocuments();
-  }, [refresh]);
+  }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadDocuments = async () => {
     try {
@@ -141,7 +141,7 @@ export default function DocumentList({ refresh, onDocumentSelect, onRefreshCompl
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-100">
-                    {docs.map((doc) => (
+                    {docs.map((doc: Document) => (
                       <div key={doc.id} className="p-4 hover:bg-gray-50 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">

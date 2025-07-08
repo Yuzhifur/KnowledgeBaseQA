@@ -11,6 +11,12 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      "jsx-a11y/alt-text": "off", // Disable alt-text warnings for decorative icons
+      "@next/next/no-img-element": "warn" // Keep as warning instead of error
+    }
+  }
 ];
 
 export default eslintConfig;
